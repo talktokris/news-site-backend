@@ -16,7 +16,8 @@ class TestController extends Controller
 
     public function commanTest(){
 
-    return $this->newYorkTimesNewsSearch('Tesla');
+       // return $this->newYorkTimesFatchLatest('Tesla');
+         return $this->newYorkTimesNewsCategorySearch('Books');
         //return $this->theGuardianNewsSearch('Tesla');
      // return $this->newApiNewsSearch('Tesla');
         
@@ -26,13 +27,37 @@ class TestController extends Controller
 
     //============================ The Guardian  Functions ===============================
 
-    public function newYorkTimesNewsSearch($query,  $page='1'){
+    public function newYorkTimesNewsCategorySearch($category,  $page='1', $sort='newest'){
+
+      //  $endPoint='search/v2/articlesearch.json';
+
+        $endPoint='news/v3/content/all/travel.json'; 
+
+        $data =  [
+            'page' => $page,
+           // 'sort'=>$sort,
+           // 'section_name' => 'facet_fields',
+          //  'news_desk'=>'Sports',
+            'q'=>'Mango',
+
+        ];
+
+      //  business, entertainment, general, health, science, sports, technology
+
+        $response = $this->useApi($this->theNewYorkTimesApiName, $endPoint, $data);
+        $json = json_decode($response, true);
+        return $json;
+
+    }
+
+    public function newYorkTimesNewsSearch($query,  $page='1',  $sort='newest'){
 
         $endPoint='search/v2/articlesearch.json';
 
         $data =  [
             'page' => $page,
             'q' => $query,
+            'sort'=>$sort,
 
         ];
 
@@ -247,13 +272,15 @@ class TestController extends Controller
         $authKey = $apiData->api_key; // Auth Key from database
         $baseUrl = $apiData->api_url; // Endpoint base url
         $apiUrl= $baseUrl . '/'. $endPoint;
+      
         if($apiName!=='NewsAPI'){
              $data['api-key']=$authKey; // adding apikey in data for the guardin API
         }
         $response = Http::withHeaders([
-            'Authorization' => $authKey
+          //  'Authorization' => $authKey
         ])->get($apiUrl, $data);
         
+      //  dd($response);
         return $response;
   
     }
