@@ -20,3 +20,13 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+
+/*
+Auth::routes();
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+*/
+
+Route::get('/news', [App\Http\Controllers\TestController::class, 'index'])->name('news');
+Route::get('/news/ny', [App\Http\Controllers\TestController::class, 'newYork'])->name('new-york');
+Route::get('/use-api', [App\Http\Controllers\TestController::class, 'commanTest'])->name('use.api');
