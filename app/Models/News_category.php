@@ -12,7 +12,7 @@ class News_category extends Model
     protected $fillable = [
         'name',
         'news_source_id',
-        'lebel',
+        'label',
         'status'
     ];
 }

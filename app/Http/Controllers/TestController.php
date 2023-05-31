@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\Api_setting;
+use App\Models\News_category;
 
 class TestController extends Controller
 {
@@ -15,38 +16,135 @@ class TestController extends Controller
 
 
     public function commanTest(){
+     //  dd("hi");
 
-       // return $this->newYorkTimesFatchLatest('Tesla');
-         return $this->newYorkTimesNewsCategorySearch('Books');
-        //return $this->theGuardianNewsSearch('Tesla');
+     //$full_url='https://content.guardianapis.com/search?q=Apple&format=json&tag=film/film,tone/reviews&show-tags=contributor&show-fields=starRating,headline,thumbnail,short-url&order-by=relevance&api-key=df7cc66e-bbcb-4b5d-abb3-8892fc1eb4c5';
+      //  $full_url='https://content.guardianapis.com/search?page=2&q=debate&api-key=df7cc66e-bbcb-4b5d-abb3-8892fc1eb4c5';
+      // $response = Http::get($full_url);
+
+      $endPoint='search'; 
+
+      $data =  [
+         // 'tag' => 'film',
+          'show-fields' => 'headline,thumbnail,short-url',
+
+      ];
+
+    //  business, entertainment, general, health, science, sports, technology
+
+      $response = $this->useApi($this->theGuardinApiName, $endPoint, $data);
+      $json = json_decode($response, true);;
+      return $json;
+        
+       // return $this->theGuardianHomeNews();
+
+       // return $this->theGuardianCategorySearch('');
+  
+       // return $this->theGuardianNewsSearch('Krishna');
+       //return $this->newYorkTimesHomeNews();
+       //  return $this->newYorkTimesCategorySearch('');
      // return $this->newApiNewsSearch('Tesla');
         
     }
 
 
-
     //============================ The Guardian  Functions ===============================
+    public function theGuardianHomeNews($page='1'){
 
-    public function newYorkTimesNewsCategorySearch($category,  $page='1', $sort='newest'){
 
-      //  $endPoint='search/v2/articlesearch.json';
-
-        $endPoint='news/v3/content/all/travel.json'; 
+            $endPoint='world'; 
 
         $data =  [
             'page' => $page,
-           // 'sort'=>$sort,
-           // 'section_name' => 'facet_fields',
-          //  'news_desk'=>'Sports',
-            'q'=>'Mango',
 
         ];
 
       //  business, entertainment, general, health, science, sports, technology
 
-        $response = $this->useApi($this->theNewYorkTimesApiName, $endPoint, $data);
-        $json = json_decode($response, true);
+        $response = $this->useApi($this->theGuardinApiName, $endPoint, $data);
+        $json = json_decode($response, true);;
         return $json;
+
+    }
+
+    public function theGuardianCategorySearch($category,  $page='1'){
+
+        if($category!=''){
+
+            $catData =  News_category::where('label','=', $category)->where('news_source_id','=', 2)->get()->toArray();
+                    if(count($catData)<1){ 
+                        return null;
+                        }
+                    else{
+                        $category_name= $catData[0]['name'];
+                    }
+        }
+        else { $category_name='world'; }
+
+        
+
+            $endPoint=$category_name; 
+
+        $data =  [
+            'page' => $page,
+
+        ];
+
+      //  business, entertainment, general, health, science, sports, technology
+
+        $response = $this->useApi($this->theGuardinApiName, $endPoint, $data);
+        $json = json_decode($response, true);;
+        return $json;
+
+    }
+
+    public function theGuardianNewsSearch($query,  $page='1'){
+
+        $endPoint='search';
+
+        $data =  [
+            'page' => $page,
+            'q' => $query,
+
+        ];
+
+      //  business, entertainment, general, health, science, sports, technology
+
+        $response = $this->useApi($this->theGuardinApiName, $endPoint, $data);
+        $json = json_decode($response, true);;
+        return $json;
+
+    }
+
+    //============================ The New Yourk Times  Functions ===============================
+
+    public function newYorkTimesCategorySearch($category,  $limit=10, $offset=0){
+
+        if($category!=''){
+
+            $catData =  News_category::where('label','=', $category)->where('news_source_id','=', 3)->get()->toArray();
+                    if(count($catData)<1){ 
+                        return null;
+                        }
+                    else{
+                        $jsonFileName= $catData[0]['name'].'.json';
+                    }
+        }
+        else { $jsonFileName='all.json'; }
+
+        
+
+            $endPoint='news/v3/content/all/'.$jsonFileName; 
+
+            $data =  [
+                'limit' => $limit,
+                'offset'=>$offset
+            ];
+
+
+            $response = $this->useApi($this->theNewYorkTimesApiName, $endPoint, $data);
+            $json = json_decode($response, true);
+            return $json;
 
     }
 
@@ -68,27 +166,20 @@ class TestController extends Controller
         return $json;
 
     }
-    
 
-    //============================ The Guardian  Functions ===============================
+    public function newYorkTimesHomeNews(){
 
-    public function theGuardianNewsSearch($query,  $page='1'){
+        $endPoint='topstories/v2/home.json';
 
-        $endPoint='search';
+        $data =  [];
 
-        $data =  [
-            'page' => $page,
-            'q' => $query,
-
-        ];
-
-      //  business, entertainment, general, health, science, sports, technology
-
-        $response = $this->useApi($this->theGuardinApiName, $endPoint, $data);
+        $response = $this->useApi($this->theNewYorkTimesApiName, $endPoint, $data);
         $json = json_decode($response, true);;
         return $json;
 
     }
+    
+
 
     //============================ News Api Functions ===============================
 
@@ -272,12 +363,14 @@ class TestController extends Controller
         $authKey = $apiData->api_key; // Auth Key from database
         $baseUrl = $apiData->api_url; // Endpoint base url
         $apiUrl= $baseUrl . '/'. $endPoint;
+
+        //dd($apiUrl);
       
         if($apiName!=='NewsAPI'){
              $data['api-key']=$authKey; // adding apikey in data for the guardin API
         }
         $response = Http::withHeaders([
-          //  'Authorization' => $authKey
+           'Authorization' => $authKey
         ])->get($apiUrl, $data);
         
       //  dd($response);
