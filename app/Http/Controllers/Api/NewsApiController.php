@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Api\BaseApiController;
-
+use App\Models\News_category;
 class NewsApiController extends BaseApiController
 {
 
@@ -32,7 +32,7 @@ class NewsApiController extends BaseApiController
 
     }
     
-    public static function newApiCategorySearch($category, $country='us',$language='en' ){
+    public function newApiCategorySearch($category, $country='us',$language='en' ){
 
         $endPoint='sources';
 
@@ -50,7 +50,7 @@ class NewsApiController extends BaseApiController
 
     }
 
-    public static function newApiHeadline(){
+    public function newApiNewsHome(){
 
 
 
@@ -61,7 +61,7 @@ class NewsApiController extends BaseApiController
            // 'from'=>'2023-05-28',
         ];
 
-        $response = $this->useApi($this->newsApiName, $authKey, $endPoint, $data);
+        $response = $this->useApi($this->newsApiName,  $endPoint, $data);
         $json = json_decode($response, true);;
         return $json;
 

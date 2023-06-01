@@ -30,6 +30,7 @@ class GuardianApiController extends BaseApiController
         //'show-elements'=>'image',
         'show-tags'=>'contributor',
         'show-fields'=>'starRating,headline,thumbnail,short-url',
+        'show-blocks'=>'all',
 
     ];
 
@@ -61,11 +62,13 @@ public  function theGuardianCategorySearch($category,  $page=1){
 
         $endPoint=$category_name; 
 
-    $data =  [
-        'page' => $page,
-      
-
-    ];
+        $data =  [
+                    'page' => 1,
+                    //'show-elements'=>'image',
+                    'show-tags'=>'contributor',
+                    'show-fields'=>'starRating,headline,thumbnail,short-url',
+                    'show-blocks'=>'all',
+                ];
 
   //  business, entertainment, general, health, science, sports, technology
 
@@ -75,13 +78,16 @@ public  function theGuardianCategorySearch($category,  $page=1){
 
 }
 
-public  function theGuardianNewsSearch($query,  $page='1'){
+public  function theGuardianNewsSearch($query,  $page=1){
 
     $endPoint='search';
 
     $data =  [
         'page' => $page,
         'q' => $query,
+        'show-tags'=>'contributor',
+        'show-fields'=>'starRating,headline,thumbnail,short-url',
+        'show-blocks'=>'all',
 
     ];
 
