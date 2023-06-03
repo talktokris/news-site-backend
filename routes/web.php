@@ -34,3 +34,7 @@ Route::get('/news-api', [App\Http\Controllers\Api\NewsApiController::class, 'com
 Route::get('/new-api', [App\Http\Controllers\Api\NewYorkApiController::class, 'commanTest'])->name('new.api');
 Route::get('/guard-api', [App\Http\Controllers\Api\GuardianApiController::class, 'commanTest'])->name('new.api');
 Route::get('/api-test', [App\Http\Controllers\Api\NewsController::class, 'commanTest'])->name('new.api');
+
+
+/* cron job route to get news source, category, auther  */
+Route::get('/cron-jobs', [App\Http\Controllers\Api\NewsController::class, 'settingsCronJobs'])->name('new.cron_jobs');

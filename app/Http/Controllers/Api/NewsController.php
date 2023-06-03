@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Api\NewsApiController;
 use App\Http\Controllers\Api\NewYorkApiController;
 use App\Http\Controllers\Api\GuardianApiController;
-
+use App\Http\Controllers\Api\SettingsController;
 
 
 class NewsController extends Controller
@@ -16,21 +16,68 @@ class NewsController extends Controller
 
     public function commanTest(){
 
-   //    $data = $this->guardinReformatArray();
+      dd(hi);
+
+        //Filter Setting Data Fatching for API
+        $newsSetting  = new SettingsController();
+        $filterSettings =$newsSetting->getNewsSeettings();
+
+       //Latest News Data Fatching for API
         $dataNewYork = $this->newYorkTimesReformatArray();
-      //  dd($dataNewYork);
         $dataNewsApi = $this->newsApiReformatArray();
         $dataGuardin= $this->guardinReformatArray();
-
         $dataAll = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
         shuffle($dataAll);
-       dd($dataAll);
+
+        //available News Date Filter Setup
+
+        $dates = array_column($dataAll,'date_human');
+        $uiniqueDates = array_unique($dates);
+       // dd($uiniqueDates);
+
+        return response()->json([
+          'status' => 'success',
+          'filterSettings' => $filterSettings,
+          'filterDates'=>$uiniqueDates,
+          'newsData' => $dataAll,
+          //'authors' => NewsAuthorResource::collection($newAuthorData),
+     
+      ]);
+      
+    //   dd($dataAll);
     
     //    return GuardianApiController::theGuardianHomeNews();
 
 
-
        // return $newsData;
+    }
+
+    public function homePage(){
+       //Filter Setting Data Fatching for API
+       $newsSetting  = new SettingsController();
+       $filterSettings =$newsSetting->getNewsSeettings();
+
+      //Latest News Data Fatching for API
+       $dataNewYork = $this->newYorkTimesReformatArray();
+       $dataNewsApi = $this->newsApiReformatArray();
+       $dataGuardin= $this->guardinReformatArray();
+       $dataAll = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
+       shuffle($dataAll);
+
+       //available News Date Filter Setup
+
+       $dates = array_column($dataAll,'date_human');
+       $uiniqueDates = array_unique($dates);
+      // dd($uiniqueDates);
+
+       return response()->json([
+         'status' => 'success',
+         'filterSettings' => $filterSettings,
+         'filterDates'=>$uiniqueDates,
+         'newsData' => $dataAll,
+         //'authors' => NewsAuthorResource::collection($newAuthorData),
+    
+     ]);
     }
 
     public function newYorkTimesReformatArray(){
@@ -170,6 +217,7 @@ class NewsController extends Controller
 
     public function newArray($id, $title, $source, $image, $content, $link, $categoryId, $categoryName, $autherProfie, $authorName, $date){
     $dateFormat = date('Y-m-d h:i:s', strtotime($date));
+    $dateHuman = date('d M Y', strtotime($date));
         return  [   'id'=>$id,
                     'title'=>$title,
                     'source'=>$source,
@@ -181,6 +229,7 @@ class NewsController extends Controller
                     'autherProfie'=>$autherProfie,
                     'authorName'=>$authorName,
                     'date'=>$dateFormat,
+                    'date_human'=>$dateHuman,
                 ];
         
     }
@@ -192,7 +241,23 @@ class NewsController extends Controller
        // dd($milliseconds);
         return $intId;
     }
+
+    public function settingsCronJobs(){
+      
+      $dataNewYork = $this->newYorkTimesReformatArray();
+      //  dd($dataNewYork);
+        $dataNewsApi = $this->newsApiReformatArray();
+        $dataGuardin= $this->guardinReformatArray();
+
+        $dataAll = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
+
+        $sttingObj = new SettingsController();
+
+        $sttingObj->searchAndSave($dataAll);
+    }
     
+    
+    /*
     public function guardinReformatArray2(){
 
         $theGuardin = new GuardianApiController();
@@ -213,5 +278,7 @@ class NewsController extends Controller
       //  echo count($newsData['response']);
 
     }
+
+    */
     
 }
