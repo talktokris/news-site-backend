@@ -32,8 +32,19 @@
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
+            
                     <ul class="navbar-nav me-auto">
-
+                        @auth
+                        <li class="nav-item active">
+                            <a class="nav-link" href="{{url('/')}}">Home </a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" href="{{url('/user-list')}}">Users</a>
+                          </li>
+                          <li class="nav-item">
+                            <a class="nav-link" href="{{url('/api-settings')}}">API Settings</a>
+                          </li>
+                          @endauth
                     </ul>
 
                     <!-- Right Side Of Navbar -->
@@ -63,6 +74,8 @@
                                                      document.getElementById('logout-form').submit();">
                                         {{ __('Logout') }}
                                     </a>
+
+                           
 
                                     <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
                                         @csrf

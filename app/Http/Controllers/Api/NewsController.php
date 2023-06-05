@@ -9,6 +9,10 @@ use App\Http\Controllers\Api\NewYorkApiController;
 use App\Http\Controllers\Api\GuardianApiController;
 use App\Http\Controllers\Api\SettingsController;
 
+use App\Models\Users_authors_setting;
+use App\Models\Users_category_setting;
+use App\Models\Users_source_setting;
+
 
 class NewsController extends Controller
 {
@@ -16,9 +20,9 @@ class NewsController extends Controller
 
     public function commanTest(){
 
- 
-    $data = $this->search('Apple');
-     return response($data, 200);
+    
+    // $data = $this->search('Apple');
+    //  return response($data, 200);
 
      // dd($data);
 /*
@@ -56,6 +60,123 @@ class NewsController extends Controller
        // return $newsData;
        */
     }
+
+    function findPreferenceLogic($user_id, $sourceName, $autherName, $categoryName){
+
+      $autherChcek = Users_authors_setting::where('user_id', $user_id)->where('name', $autherName)->get()->count();
+      $categoryCheck = Users_category_setting::where('user_id', $user_id)->where('name', $categoryName)->get()->count();
+      $sourceChck = Users_source_setting::where('user_id', $user_id)->where('name', $sourceName)->get()->count();
+
+      if($autherChcek>=1){ return 1; }
+      elseif($categoryCheck>=1){ return 1;}
+      elseif($sourceChck>=1){ return 1;}
+      else { return 0;}
+
+    }
+
+    public function newsByUserSetting(){
+
+      $id = auth('sanctum')->user()->id;
+
+        //Filter Setting Data Fatching for API
+        $newsSetting  = new SettingsController();
+        $filterSettings =$newsSetting->getNewsSeettings();
+      
+      $dataAll = $this->latestNews();
+  
+      $userArray=[];
+      $remainingArray=[];
+
+     foreach($dataAll as $item){
+      
+          $autherName = $item['authorName'];
+          $sourceName = $item['source'];
+          $categoryName = $item['categoryName'];
+         $check = $this->findPreferenceLogic($id, $sourceName, $autherName, $categoryName);
+
+         if($check===1){ $userArray[]= $item ;}
+         else { $remainingArray[]= $item ; }
+
+     }
+         
+     $dataAll = array_merge($remainingArray,$userArray,);
+         
+    // return $dataAll;
+    
+      //available News Date Filter Setup
+     $setDatesArray = $this->getDateArray($dataAll);
+
+    $data=[
+     'status' => 'success',
+     'filterSettings' => $filterSettings,
+     'filterDates'=>$setDatesArray,
+     'newsData' => $dataAll,
+
+
+     ];
+     return response($data, 200);
+     
+   }
+
+
+
+   
+
+
+   public function homePage(){
+
+    
+        //Filter Setting Data Fatching for API
+        $newsSetting  = new SettingsController();
+        $filterSettings =$newsSetting->getNewsSeettings();
+
+    $dataAll = $this->latestNews();
+    
+     shuffle($dataAll);
+
+     //available News Date Filter Setup
+    $setDatesArray = $this->getDateArray($dataAll);
+
+   $data=[
+    'status' => 'success',
+    'filterSettings' => $filterSettings,
+    'filterDates'=>$setDatesArray,
+    'newsData' => $dataAll,
+    //'authors' => NewsAuthorResource::collection($newAuthorData),
+
+    ];
+    return response($data, 200);
+  }
+   
+    public function latestNews(){
+
+  
+       //Latest News Data Fatching for New York API
+       $newYorkObj = new NewYorkApiController();
+       $newsDataOne= $newYorkObj->newYorkTimesHomeNews();
+       //  dd($newsData);
+       $dataNewYork = $this->newYorkTimesReformatArray($newsDataOne);
+    
+  
+        //Latest News Data Fatching for New API
+        $newsApiObj = new NewsApiController();
+        $newsDataTwo= $newsApiObj->newApiNewsHome();
+        $dataNewsApi = $this->newsApiReformatArray($newsDataTwo);
+       // dd($dataNewsApi);
+  
+        //Latest News Data Fatching for Guardin API
+        $theGuardin = new GuardianApiController();
+        $newsDataThree= $theGuardin->theGuardianHomeNews();
+        $dataGuardin= $this->guardinReformatArray($newsDataThree);
+        if(is_array($dataNewYork)){} else{ $dataNewYork=[];}
+        if(is_array($dataNewsApi)){} else{ $dataNewsApi=[];}
+        if(is_array($dataGuardin)){} else{ $dataGuardin=[];}
+        $dataAll = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
+
+        return $dataAll;
+    }
+
+   
 
 
     public function search($string=""){
@@ -116,47 +237,7 @@ class NewsController extends Controller
         return response($data, 200);
    }
 
-    public function homePage(){
-       //Filter Setting Data Fatching for API
-       $newsSetting  = new SettingsController();
-       $filterSettings =$newsSetting->getNewsSeettings();
-
-      //Latest News Data Fatching for New York API
-      $newYorkObj = new NewYorkApiController();
-      $newsDataOne= $newYorkObj->newYorkTimesHomeNews();
-      //  dd($newsData);
-      $dataNewYork = $this->newYorkTimesReformatArray($newsDataOne);
    
-
-       //Latest News Data Fatching for New API
-       $newsApiObj = new NewsApiController();
-       $newsDataTwo= $newsApiObj->newApiNewsHome();
-       $dataNewsApi = $this->newsApiReformatArray($newsDataTwo);
-      // dd($dataNewsApi);
-
-       //Latest News Data Fatching for Guardin API
-       $theGuardin = new GuardianApiController();
-       $newsDataThree= $theGuardin->theGuardianHomeNews();
-       $dataGuardin= $this->guardinReformatArray($newsDataThree);
-       if(is_array($dataNewYork)){} else{ $dataNewYork=[];}
-       if(is_array($dataNewsApi)){} else{ $dataNewsApi=[];}
-       if(is_array($dataGuardin)){} else{ $dataGuardin=[];}
-       $dataAll = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
-       shuffle($dataAll);
-
-       //available News Date Filter Setup
-      $setDatesArray = $this->getDateArray($dataAll);
-
-     $data=[
-      'status' => 'success',
-      'filterSettings' => $filterSettings,
-      'filterDates'=>$setDatesArray,
-      'newsData' => $dataAll,
-      //'authors' => NewsAuthorResource::collection($newAuthorData),
- 
-      ];
-      return response($data, 200);
-    }
 
     public function getDateArray($dataAll){
 

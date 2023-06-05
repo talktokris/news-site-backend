@@ -37,7 +37,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/user-account', [ProfileController::class,'userSettings'])->name('user.settings');
     Route::post('/user-setting-save', [ProfileController::class,'saveUserSetting'])->name('save.set_settings');
     Route::post('/user-setting-delete', [ProfileController::class,'deleteUserSetting'])->name('delete.set_settings');
-
+    Route::post('/user-setting-news', [NewsController::class,'newsByUserSetting'])->name('news.user_settings');
+     
     
    
     

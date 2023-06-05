@@ -15,4 +15,10 @@ class Users_source_setting extends Model
         'lebel',
         'status'
     ];
+
+    public function getUserInfo(){
+
+        return $this->belongsTo(User::class, 'user_id', 'id');
+
+    }
 }

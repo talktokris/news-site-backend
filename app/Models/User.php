@@ -7,9 +7,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-use App\Models\User_author_setting;
-use App\Models\User_category_setting;
-use App\Models\User_source_setting;
+// use App\Models\User_authors_setting;
+// use App\Models\User_category_setting;
+// use App\Models\User_source_setting;
+
 
 class User extends Authenticatable
 {
@@ -39,15 +40,15 @@ class User extends Authenticatable
 
 
     public function category(){
-        return $this->hasOne(User_category_setting::class, 'id', 'user_id');
+        return $this->hasMany(Users_category_setting::class, 'user_id', 'id');
        // return $this->hasOne(Country::class, 'foreign_key', 'local_key');
      }
      public function source(){
-         return $this->hasOne(User_source_setting::class, 'id', 'user_id');
+         return $this->hasMany(Users_source_setting::class, 'user_id', 'id');
      }
 
      public function author(){
-        return $this->hasOne(User_author_setting::class, 'id', 'user_id');
+        return $this->hasMany(Users_authors_setting::class, 'user_id', 'id');
     }
 
 
