@@ -16,8 +16,11 @@ class NewsController extends Controller
 
     public function commanTest(){
 
-      dd(hi);
+ 
 
+     return $data = $this->search('Apple');
+     // dd($data);
+/*
         //Filter Setting Data Fatching for API
         $newsSetting  = new SettingsController();
         $filterSettings =$newsSetting->getNewsSeettings();
@@ -50,39 +53,124 @@ class NewsController extends Controller
 
 
        // return $newsData;
+       */
     }
+
+
+    public function search($string=""){
+
+     // dd("hi");
+    
+    //  dd($string);
+      //Filter Setting Data Fatching for API
+      $newsSetting  = new SettingsController();
+      $filterSettings =$newsSetting->getNewsSeettings();
+/*
+      //Latest News Data Fatching for New York API
+      $newYorkObj = new NewYorkApiController();
+      $newsDataOne= $newYorkObj->newYorkTimesNewsSearch($string);
+       // dd($newsDataOne);
+      $dataNewYork = $this->newYorkTimesReformatArraySearch($newsDataOne);
+    */
+
+      //Latest News Data Fatching for New API
+      $newsApiObj = new NewsApiController();
+      $newsDataTwo= $newsApiObj->newApiNewsSearch($string);
+     
+      $dataNewsApi = $this->newsApiReformatArray($newsDataTwo);
+     
+      //Latest News Data Fatching for Guardin API
+      $theGuardin = new GuardianApiController();
+      $newsDataThree= $theGuardin->theGuardianNewsSearch($string);
+     // dd($newsDataThree);
+      $dataGuardin= $this->guardinReformatArray($newsDataThree);
+     // dd($dataGuardin);
+     // $dataAllPre = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
+
+     if(is_array($dataNewYork)){} else{ $dataNewYork=[];}
+     if(is_array($dataNewsApi)){} else{ $dataNewsApi=[];}
+     if(is_array($dataGuardin)){} else{ $dataGuardin=[];}
+     $dataAllPre = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
+     
+     // $dataAll = array_merge($dataNewsApi, $dataGuardin);
+      
+     // shuffle($dataNewsApi);
+     // shuffle($dataAll);
+    // $dataAll = array_slice($dataAllPre, 0, 50);
+
+    // dd($dataAll);
+
+      //available News Date Filter Setup
+     $setDatesArray = $this->getDateArray($dataAll);
+
+      return response()->json([
+        'status' => 'success',
+        'filterSettings' => $filterSettings,
+        'filterDates'=>$setDatesArray,
+        'newsData' => $dataAll,
+        //'authors' => NewsAuthorResource::collection($newAuthorData),
+   
+    ]);
+   }
 
     public function homePage(){
        //Filter Setting Data Fatching for API
        $newsSetting  = new SettingsController();
        $filterSettings =$newsSetting->getNewsSeettings();
 
-      //Latest News Data Fatching for API
-       $dataNewYork = $this->newYorkTimesReformatArray();
-       $dataNewsApi = $this->newsApiReformatArray();
-       $dataGuardin= $this->guardinReformatArray();
+      //Latest News Data Fatching for New York API
+      $newYorkObj = new NewYorkApiController();
+      $newsDataOne= $newYorkObj->newYorkTimesHomeNews();
+      //  dd($newsData);
+      $dataNewYork = $this->newYorkTimesReformatArray($newsDataOne);
+   
+
+       //Latest News Data Fatching for New API
+       $newsApiObj = new NewsApiController();
+       $newsDataTwo= $newsApiObj->newApiNewsHome();
+       $dataNewsApi = $this->newsApiReformatArray($newsDataTwo);
+      // dd($dataNewsApi);
+
+       //Latest News Data Fatching for Guardin API
+       $theGuardin = new GuardianApiController();
+       $newsDataThree= $theGuardin->theGuardianHomeNews();
+       $dataGuardin= $this->guardinReformatArray($newsDataThree);
+       if(is_array($dataNewYork)){} else{ $dataNewYork=[];}
+       if(is_array($dataNewsApi)){} else{ $dataNewsApi=[];}
+       if(is_array($dataGuardin)){} else{ $dataGuardin=[];}
        $dataAll = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
        shuffle($dataAll);
 
        //available News Date Filter Setup
-
-       $dates = array_column($dataAll,'date_human');
-       $uiniqueDates = array_unique($dates);
-      // dd($uiniqueDates);
+      $setDatesArray = $this->getDateArray($dataAll);
 
        return response()->json([
          'status' => 'success',
          'filterSettings' => $filterSettings,
-         'filterDates'=>$uiniqueDates,
+         'filterDates'=>$setDatesArray,
          'newsData' => $dataAll,
          //'authors' => NewsAuthorResource::collection($newAuthorData),
     
      ]);
     }
 
-    public function newYorkTimesReformatArray(){
+    public function getDateArray($dataAll){
 
-        $newYorkObj = new NewYorkApiController();
+      $dates = array_column($dataAll,'date_human');
+      $uiniqueDates = array_unique($dates);
+      sort($uiniqueDates);
+      $setDatesArray=[];
+      foreach($uiniqueDates as $key=>$value){
+       $setDatesArray[]= ['id'=>$key,'name'=>$value, 'label'=>$value];
+
+      }
+      return $setDatesArray;
+
+    }
+
+    public function newYorkTimesReformatArraySearch($newsData){
+
+     //  dd($newsData['response']['docs']);
 
       //  dd($newsApi->newsApiName);
             //  $newsData= $theGuardin->theGuardianHomeNews();
@@ -90,7 +178,57 @@ class NewsController extends Controller
             // return $this->theGuardianNewsSearch('Krishna');
             //  $newsData= $theGuardin->theGuardianCategorySearch('Travel');
 
-        $newsData= $newYorkObj->newYorkTimesHomeNews();
+       // $newYorkObj = new NewYorkApiController();
+      //  $newsData= $newYorkObj->newYorkTimesHomeNews();
+        // dd($newsData);
+         
+        if(isset($newsData['response']['docs'])){
+     
+            $resultData = $newsData['response']['docs'];
+           // dd($resultData);
+        
+          $newSetArray=[];
+            foreach($resultData as $item){
+               // dd($item);
+                $id=$item['uri'];
+                $title=$item['abstract'];
+                if(isset($item['multimedia'][0]['url'])){  $image=$item['multimedia'][0]['url'];  } else {  $image='';}
+                if(isset($item['web_url'])){  $link=$item['web_url'];  } else {  $link='';}
+                if(isset($item['lead_paragraph'])){  $content=$item['lead_paragraph'];  } else {  $content=''; }
+                if(isset($item['section_name'])){  $categoryId=$item['section_name'];  } else {  $categoryId=''; }
+                if(isset($item['type_of_material'])){  $categoryName=$item['section_name'];  } else {  $categoryName=''; }
+                if(isset($item['byline'])){  $autherProfie=$item['byline'];  } else {  $autherProfie='';}
+                if(isset($item['byline'])){   $authorName=$item['byline']; } else {  $authorName='';}
+                $date=$item['pub_date'];
+               // if(isset($item['source'])){   $sourceName=$item['source']['name']; } else {  $sourceName='New York Times';}
+                $sourceName=$item['source'];
+           // dd($setArray);
+            $newSetArray[]= $this->newArray($id, $title, $sourceName, $image, $content, $link, $categoryId, $categoryName, $autherProfie, $authorName, $date);
+         
+           
+          }
+         //  dd($newSetArray);
+
+           return $newSetArray;
+          
+        }
+      //  echo count($newsData['response']);
+    
+
+    }
+
+    public function newYorkTimesReformatArray($newsData){
+
+       
+
+      //  dd($newsApi->newsApiName);
+            //  $newsData= $theGuardin->theGuardianHomeNews();
+            // return $this->theGuardianCategorySearch('');
+            // return $this->theGuardianNewsSearch('Krishna');
+            //  $newsData= $theGuardin->theGuardianCategorySearch('Travel');
+
+       // $newYorkObj = new NewYorkApiController();
+      //  $newsData= $newYorkObj->newYorkTimesHomeNews();
         // dd($newsData);
          
         if(isset($newsData['results'])){
@@ -112,7 +250,7 @@ class NewsController extends Controller
                 if(isset($item['byline'])){   $authorName=$item['byline']; } else {  $authorName='';}
                 $date=$item['published_date'];
                // if(isset($item['source'])){   $sourceName=$item['source']['name']; } else {  $sourceName='New York Times';}
-                $sourceName='New York Times';
+                $sourceName='The New York Times';
            // dd($setArray);
             $newSetArray[]= $this->newArray($id, $title, $sourceName, $image, $content, $link, $categoryId, $categoryName, $autherProfie, $authorName, $date);
          
@@ -128,17 +266,16 @@ class NewsController extends Controller
 
     }
 
-    public function newsApiReformatArray(){
+    public function newsApiReformatArray($newsData){
 
-        $newsApiObj = new NewsApiController();
+       // $newsApiObj = new NewsApiController();
 
       //  dd($newsApi->newsApiName);
             //  $newsData= $theGuardin->theGuardianHomeNews();
             // return $this->theGuardianCategorySearch('');
             // return $this->theGuardianNewsSearch('Krishna');
             //  $newsData= $theGuardin->theGuardianCategorySearch('Travel');
-
-        $newsData= $newsApiObj->newApiNewsHome();
+   
        //  dd($newsData);
          
         if(isset($newsData['articles'])){
@@ -176,15 +313,16 @@ class NewsController extends Controller
 
     }
     
-    public function guardinReformatArray(){
+    public function guardinReformatArray($newsData){
 
-        $theGuardin = new GuardianApiController();
+       // $theGuardin = new GuardianApiController();
             //  $newsData= $theGuardin->theGuardianHomeNews();
             // return $this->theGuardianCategorySearch('');
             // return $this->theGuardianNewsSearch('Krishna');
             //  $newsData= $theGuardin->theGuardianCategorySearch('Travel');
-
-        $newsData= $theGuardin->theGuardianNewsSearch('Apple');
+        $theGuardin = new GuardianApiController();
+        $newsData= $theGuardin->theGuardianHomeNews();
+       // $newsData= $theGuardin->theGuardianNewsSearch('Apple');
         // dd($newsData);
         if(isset($newsData['response']['results'])){
             $resultData = $newsData['response']['results'];
@@ -244,10 +382,25 @@ class NewsController extends Controller
 
     public function settingsCronJobs(){
       
-      $dataNewYork = $this->newYorkTimesReformatArray();
-      //  dd($dataNewYork);
-        $dataNewsApi = $this->newsApiReformatArray();
-        $dataGuardin= $this->guardinReformatArray();
+      //Latest News Data Fatching for New York API
+      $newYorkObj = new NewYorkApiController();
+      $newsData= $newYorkObj->newYorkTimesHomeNews();
+      //  dd($newsData);
+      $dataNewYork = $this->newYorkTimesReformatArray($newsData);
+
+       //Latest News Data Fatching for New API
+       $newsApiObj = new NewsApiController();
+       $newsData= $newsApiObj->newApiNewsHome();
+       $dataNewsApi = $this->newsApiReformatArray($newsData);
+
+       //Latest News Data Fatching for Guardin API
+       $theGuardin = new GuardianApiController();
+       $newsData= $theGuardin->theGuardianHomeNews();
+       $dataGuardin= $this->guardinReformatArray($newsData);
+
+       if($dataNewYork==null){ $dataNewYork=[];}
+       if($dataNewsApi==null){ $dataNewsApi=[];}
+       if($dataGuardin==null){ $dataGuardin=[];}
 
         $dataAll = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
 

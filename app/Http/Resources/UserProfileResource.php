@@ -24,9 +24,9 @@ class UserProfileResource extends JsonResource
                 'id' => $this->id,
                 'name' => $this->name,
                 'email'=>$this->email,
-                'category'=> new UserCategoryResource($this->id),
-                'source'=> new UserSourceResource($this->id),
-                'author'=> new UserAuthorResource($this->id),
+                //'category'=> new UserCategoryResource($this->id),
+                //'source'=> new UserSourceResource($this->id),
+               // 'author'=> new UserAuthorResource($this->id),
                 
                 ];
     }

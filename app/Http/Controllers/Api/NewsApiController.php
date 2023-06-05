@@ -62,7 +62,12 @@ class NewsApiController extends BaseApiController
         ];
 
         $response = $this->useApi($this->newsApiName,  $endPoint, $data);
-        $json = json_decode($response, true);;
+      
+        $json = json_decode($response, true);
+        if($json['status']=="error"){
+            return [];
+        } 
+       // dd($json);
         return $json;
 
     }

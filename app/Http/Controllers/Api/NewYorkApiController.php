@@ -21,7 +21,7 @@ class NewYorkApiController extends BaseApiController
 
             $catData =  News_category::where('label','=', $category)->where('news_source_id','=', 3)->get()->toArray();
                     if(count($catData)<1){ 
-                        return null;
+                        return [];
                         }
                     else{
                         $jsonFileName= $catData[0]['name'].'.json';

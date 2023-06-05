@@ -34,10 +34,18 @@ Route::middleware('auth:sanctum')->group(function () {
   //  print_r($_REQUEST);
    // print_r($_SERVER);
     Route::post('/profile-info', [ProfileController::class,'profile'])->name('profile');
+    Route::post('/user-account', [ProfileController::class,'userSettings'])->name('user.settings');
+    Route::post('/user-setting-save', [ProfileController::class,'saveUserSetting'])->name('save.set_settings');
+    Route::post('/user-setting-delete', [ProfileController::class,'deleteUserSetting'])->name('delete.set_settings');
 
+    
+   
+    
 });
 
-Route::get('/home-page', [NewsController::class,'homePage'])->name('profile');
+
+Route::get('/home-page', [NewsController::class,'homePage'])->name('api-home-page');
+Route::get('/news-search/{string}', [NewsController::class,'search'])->name('api-news-search');
 
 
 // Route::middleware('auth:sanctum')->group( function () {
