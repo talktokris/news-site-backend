@@ -17,8 +17,9 @@ class NewsController extends Controller
     public function commanTest(){
 
  
+    $data = $this->search('Apple');
+     return response($data, 200);
 
-     return $data = $this->search('Apple');
      // dd($data);
 /*
         //Filter Setting Data Fatching for API
@@ -65,13 +66,13 @@ class NewsController extends Controller
       //Filter Setting Data Fatching for API
       $newsSetting  = new SettingsController();
       $filterSettings =$newsSetting->getNewsSeettings();
-/*
+
       //Latest News Data Fatching for New York API
       $newYorkObj = new NewYorkApiController();
       $newsDataOne= $newYorkObj->newYorkTimesNewsSearch($string);
        // dd($newsDataOne);
       $dataNewYork = $this->newYorkTimesReformatArraySearch($newsDataOne);
-    */
+     // dd($dataNewYork);
 
       //Latest News Data Fatching for New API
       $newsApiObj = new NewsApiController();
@@ -90,9 +91,10 @@ class NewsController extends Controller
      if(is_array($dataNewYork)){} else{ $dataNewYork=[];}
      if(is_array($dataNewsApi)){} else{ $dataNewsApi=[];}
      if(is_array($dataGuardin)){} else{ $dataGuardin=[];}
-     $dataAllPre = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
-     
-     // $dataAll = array_merge($dataNewsApi, $dataGuardin);
+    // $dataAll=$dataNewYork;
+     //$dataAll = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
+     $dataAll = array_merge($dataNewYork,$dataNewsApi, $dataGuardin);
+    //  $dataAll = array_merge($dataNewsApi, $dataGuardin);
       
      // shuffle($dataNewsApi);
      // shuffle($dataAll);
@@ -102,15 +104,16 @@ class NewsController extends Controller
 
       //available News Date Filter Setup
      $setDatesArray = $this->getDateArray($dataAll);
-
-      return response()->json([
+    
+      $data=[
         'status' => 'success',
         'filterSettings' => $filterSettings,
         'filterDates'=>$setDatesArray,
         'newsData' => $dataAll,
         //'authors' => NewsAuthorResource::collection($newAuthorData),
    
-    ]);
+        ];
+        return response($data, 200);
    }
 
     public function homePage(){
@@ -144,14 +147,15 @@ class NewsController extends Controller
        //available News Date Filter Setup
       $setDatesArray = $this->getDateArray($dataAll);
 
-       return response()->json([
-         'status' => 'success',
-         'filterSettings' => $filterSettings,
-         'filterDates'=>$setDatesArray,
-         'newsData' => $dataAll,
-         //'authors' => NewsAuthorResource::collection($newAuthorData),
-    
-     ]);
+     $data=[
+      'status' => 'success',
+      'filterSettings' => $filterSettings,
+      'filterDates'=>$setDatesArray,
+      'newsData' => $dataAll,
+      //'authors' => NewsAuthorResource::collection($newAuthorData),
+ 
+      ];
+      return response($data, 200);
     }
 
     public function getDateArray($dataAll){
@@ -185,20 +189,20 @@ class NewsController extends Controller
         if(isset($newsData['response']['docs'])){
      
             $resultData = $newsData['response']['docs'];
-           // dd($resultData);
+          // return $resultData;
         
           $newSetArray=[];
             foreach($resultData as $item){
                // dd($item);
                 $id=$item['uri'];
                 $title=$item['abstract'];
-                if(isset($item['multimedia'][0]['url'])){  $image=$item['multimedia'][0]['url'];  } else {  $image='';}
+                if(isset($item['multimedia'][0]['url'])){  $image='https://www.nytimes.com/'.$item['multimedia'][0]['url'];  } else {  $image='';}
                 if(isset($item['web_url'])){  $link=$item['web_url'];  } else {  $link='';}
                 if(isset($item['lead_paragraph'])){  $content=$item['lead_paragraph'];  } else {  $content=''; }
                 if(isset($item['section_name'])){  $categoryId=$item['section_name'];  } else {  $categoryId=''; }
                 if(isset($item['type_of_material'])){  $categoryName=$item['section_name'];  } else {  $categoryName=''; }
-                if(isset($item['byline'])){  $autherProfie=$item['byline'];  } else {  $autherProfie='';}
-                if(isset($item['byline'])){   $authorName=$item['byline']; } else {  $authorName='';}
+                if(isset($item['byline']['original'])){  $autherProfie=$item['byline']['original'];  } else {  $autherProfie='';}
+                if(isset($item['byline']['original'])){   $authorName=$item['byline']['original']; } else {  $authorName='';}
                 $date=$item['pub_date'];
                // if(isset($item['source'])){   $sourceName=$item['source']['name']; } else {  $sourceName='New York Times';}
                 $sourceName=$item['source'];
